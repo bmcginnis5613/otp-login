@@ -9,6 +9,7 @@ Update URI: false
 */
 
 // Exit if accessed directly
+// test
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 if( !class_exists( 'OtpLogin' ) ) {
