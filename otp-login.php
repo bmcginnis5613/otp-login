@@ -1,27 +1,15 @@
 <?php
-/**
- * Plugin Name: Login with OTP
- * Plugin URI: https://www.wp-experts.in/login-with-otp
- * Description: A simple plugin that allows you to secure login with One Time Password (OTP) into your WordPress site. It also allows WooCommerce customers to login with OTP. An OTP login is more secure than a static password, especially a user-created password.
- * Version: 1.6
- * Author: WP Experts Team
- * Author URI: https://www.wp-experts.in
- * License: GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: otp-login
- * Requires at least: 6.0
- * Tested up to: 6.8
- * Requires PHP: 7.3
- * Tags: OTP Login, One Time Password, Secure Login, WooCommerce OTP, Mobile OTP, Login
- * Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZEMSYQUZRUK6A
- *
- * @package Login_with_OTP
- * @author WP Experts Team
- * @license GPL-2.0+
- * @link https://www.wp-experts.in/login-with-otp
- */
+/*
+Plugin Name: Login with OTP
+Description: A simple plugin that allows you to secure login with one-time password (OTP) into your WordPress site. It also allows WooCommerce customers to login with OTP.
+Author: FirstTracks Marketing
+Author URI: https://firsttracksmarketing.com/
+Version: 1.0.0
+*/
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+// Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 if( !class_exists( 'OtpLogin' ) ) {
 	
     class OtpLogin   {
