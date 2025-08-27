@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Login with OTP
-Description: A simple plugin that allows you to secure login with one-time password (OTP) into your WordPress site. It also allows WooCommerce customers to login with OTP.
+Description: Allows login with one-time password (OTP). It also allows WooCommerce customers to login with OTP.
 Author: FirstTracks Marketing
 Author URI: https://firsttracksmarketing.com/
 Version: 1.0.0
