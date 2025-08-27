@@ -5,6 +5,7 @@ Description: Allows login with one-time password (OTP). It also allows WooCommer
 Author: FirstTracks Marketing
 Author URI: https://firsttracksmarketing.com/
 Version: 1.0.0
+Update URI: false
 */
 
 // Exit if accessed directly
