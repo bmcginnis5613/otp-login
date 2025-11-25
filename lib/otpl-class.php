@@ -195,7 +195,7 @@ if (!class_exists('OtpLoginFront')) {
             $otpl_form_html .= '<div class="heading"><h3>' . esc_html__('One-Time Password Verification', 'otp-login') . '</h3></div>';
             $otpl_form_html .= '<div id="otpl-body">';
             $otpl_form_html .= '<div id="sendotp">';
-            $otpl_form_html .= '<label for="email">' . esc_html__('Enter your email to recieve a one-time password', 'otp-login') . '<span class="req">*</span><span class="emailerror req"></span></label>';
+            $otpl_form_html .= '<label for="email">' . esc_html__('Enter your email to receive a one-time password', 'otp-login') . '<span class="req">*</span><span class="emailerror req"></span></label>';
             $otpl_form_html .= '<input type="email" name="email" id="email" value="" class="otpl-req-fields" size="40"> ';
             $otpl_form_html .= '<input type="submit" class="otpl_submit_btn generateOtp" id="generateOtp" value="' . esc_attr__('Next', 'otp-login') . '">';
             $otpl_form_html .= '</div>';
