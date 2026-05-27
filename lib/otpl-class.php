@@ -386,9 +386,14 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
                 wp_send_json(array('status' => 0, 'message' => __('User does not exist.', 'otp-login'), 'response' => 'User does not exist'));
             }
 
-            $lockout_message = $this->otpl_get_lockout_message($user->ID);
+            $lockout_message = $this->otpl_get_failed_attempt_lockout_message($user->ID);
             if ($lockout_message) {
-                wp_send_json(array('status' => 0, 'message' => $lockout_message, 'response' => 'Account locked'));
+                wp_send_json(array('status' => 0, 'sendotp' => 0, 'message' => $lockout_message, 'response' => 'Account locked'));
+            }
+
+            $request_lockout_message = $this->otpl_get_otp_request_lockout_message($user->ID);
+            if ($request_lockout_message) {
+                wp_send_json(array('status' => 0, 'sendotp' => 0, 'message' => $request_lockout_message, 'response' => 'OTP request limit reached'));
             }
 
             $newotp = wp_rand(100000, 999999);
@@ -404,6 +409,8 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
                     'response' => 'Email failed',
                 ));
             }
+
+            $this->otpl_increment_otp_request_attempts($user->ID);
 
             wp_send_json(array(
                 'response' => 'Success',
@@ -428,12 +435,18 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
                 wp_send_json(array('status' => 0, 'message' => __('User does not exist.', 'otp-login'), 'response' => 'User does not exist'));
             }
 
-            $lockout_message = $this->otpl_get_lockout_message($user->ID);
+            $lockout_message = $this->otpl_get_failed_attempt_lockout_message($user->ID);
             if ($lockout_message) {
                 wp_send_json(array('status' => 0, 'message' => $lockout_message, 'response' => 'Account locked'));
             }
 
             if (!preg_match('/^[0-9]{6}$/', $email_otp)) {
+                $this->otpl_increment_failed_attempts($user->ID);
+                $lockout_message = $this->otpl_get_failed_attempt_lockout_message($user->ID);
+                if ($lockout_message) {
+                    wp_send_json(array('status' => 0, 'message' => $lockout_message, 'response' => 'Account locked'));
+                }
+
                 wp_send_json(array('status' => 0, 'message' => __('One-time password does not match.', 'otp-login'), 'response' => 'Invalid OTP'));
             }
 
@@ -448,7 +461,8 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
 
                 if (is_user_logged_in()) {
                     update_user_meta($user->ID, 'emilotp', '');
-                    update_user_meta($user->ID, 'otpl_login_attempts', 0);
+                    $this->otpl_reset_failed_attempts($user->ID);
+                    $this->otpl_reset_otp_request_attempts($user->ID);
 
                     wp_send_json(array(
                         'status' => 1,
@@ -468,6 +482,10 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
             }
 
             $this->otpl_increment_failed_attempts($user->ID);
+            $lockout_message = $this->otpl_get_failed_attempt_lockout_message($user->ID);
+            if ($lockout_message) {
+                wp_send_json(array('status' => 0, 'message' => $lockout_message, 'response' => 'Account locked'));
+            }
 
             wp_send_json(array(
                 'status' => 0,
@@ -479,15 +497,61 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
 
         private function otpl_increment_failed_attempts($user_id)
         {
-            $failed_attempts = (int) get_user_meta($user_id, 'otpl_login_attempts', true);
-            update_user_meta($user_id, 'otpl_login_attempts', $failed_attempts + 1);
-            update_user_meta($user_id, 'otpl_last_failed_time', time());
+            $this->otpl_increment_attempts($user_id, 'otpl_login_attempts', 'otpl_last_failed_time');
         }
 
-        private function otpl_get_lockout_message($user_id)
+        private function otpl_increment_otp_request_attempts($user_id)
         {
-            $failed_attempts = (int) get_user_meta($user_id, 'otpl_login_attempts', true);
-            $last_failed_time = (int) get_user_meta($user_id, 'otpl_last_failed_time', true);
+            $this->otpl_increment_attempts($user_id, 'otpl_otp_request_attempts', 'otpl_last_otp_request_time');
+        }
+
+        private function otpl_increment_attempts($user_id, $attempts_meta_key, $last_attempt_meta_key)
+        {
+            $attempts = (int) get_user_meta($user_id, $attempts_meta_key, true);
+            update_user_meta($user_id, $attempts_meta_key, $attempts + 1);
+            update_user_meta($user_id, $last_attempt_meta_key, time());
+        }
+
+        private function otpl_reset_failed_attempts($user_id)
+        {
+            $this->otpl_reset_attempts($user_id, 'otpl_login_attempts', 'otpl_last_failed_time');
+        }
+
+        private function otpl_reset_otp_request_attempts($user_id)
+        {
+            $this->otpl_reset_attempts($user_id, 'otpl_otp_request_attempts', 'otpl_last_otp_request_time');
+        }
+
+        private function otpl_reset_attempts($user_id, $attempts_meta_key, $last_attempt_meta_key)
+        {
+            update_user_meta($user_id, $attempts_meta_key, 0);
+            update_user_meta($user_id, $last_attempt_meta_key, 0);
+        }
+
+        private function otpl_get_failed_attempt_lockout_message($user_id)
+        {
+            return $this->otpl_get_lockout_message(
+                $user_id,
+                'otpl_login_attempts',
+                'otpl_last_failed_time',
+                __('Too many failed attempts. Please try again after %1$d hour(s), %2$d minute(s), and %3$d second(s).', 'otp-login')
+            );
+        }
+
+        private function otpl_get_otp_request_lockout_message($user_id)
+        {
+            return $this->otpl_get_lockout_message(
+                $user_id,
+                'otpl_otp_request_attempts',
+                'otpl_last_otp_request_time',
+                __('Too many one-time password emails requested. Please try again after %1$d hour(s), %2$d minute(s), and %3$d second(s).', 'otp-login')
+            );
+        }
+
+        private function otpl_get_lockout_message($user_id, $attempts_meta_key, $last_attempt_meta_key, $message)
+        {
+            $attempts = (int) get_user_meta($user_id, $attempts_meta_key, true);
+            $last_attempt_time = (int) get_user_meta($user_id, $last_attempt_meta_key, true);
             $max_attempts = (int) get_option('otpl_login_attempt', 3);
             $lockout_period = (int) get_option('otpl_login_locktime', 3600);
 
@@ -499,15 +563,18 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
                 $lockout_period = 3600;
             }
 
-            if ($failed_attempts < $max_attempts) {
+            $elapsed_time = $last_attempt_time > 0 ? time() - $last_attempt_time : $lockout_period;
+
+            if ($attempts > 0 && $elapsed_time >= $lockout_period) {
+                $this->otpl_reset_attempts($user_id, $attempts_meta_key, $last_attempt_meta_key);
                 return '';
             }
 
-            $remaining_time = $lockout_period - (time() - $last_failed_time);
-            if ($remaining_time <= 0) {
-                update_user_meta($user_id, 'otpl_login_attempts', 0);
+            if ($attempts < $max_attempts) {
                 return '';
             }
+
+            $remaining_time = $lockout_period - $elapsed_time;
 
             $remaining_hours = floor($remaining_time / 3600);
             $remaining_minutes = floor(($remaining_time % 3600) / 60);
@@ -515,7 +582,7 @@ span.otplogin-shortcode.otpl-popup { border: 1px solid #ccc; padding: 8px 10px; 
 
             return sprintf(
                 /* translators: 1: hours, 2: minutes, 3: seconds */
-                __('Too many failed attempts. Please try again after %1$d hour(s), %2$d minute(s), and %3$d second(s).', 'otp-login'),
+                $message,
                 $remaining_hours,
                 $remaining_minutes,
                 $remaining_seconds

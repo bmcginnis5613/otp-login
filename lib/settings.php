@@ -42,15 +42,15 @@
                                 </tr>
 								<tr valign="top">
                                     <th>
-                                        <label for="otpl_login_attempt">Login Attempt</label>
-                                        <input type="text" value="<?php echo esc_attr(get_option('otpl_login_attempt')); ?>" name="otpl_login_attempt" id="otpl_login_attempt" size="40" />
-                                        <em>Define the number of login attempts.</em>
+                                        <label for="otpl_login_attempt">Login Attempt Limit</label>
+                                        <input type="number" value="<?php echo esc_attr(get_option('otpl_login_attempt', 3)); ?>" name="otpl_login_attempt" id="otpl_login_attempt" min="1" step="1" size="40" />
+                                        <em>Maximum OTP email requests and failed code submissions each allowed per lockout period.</em>
                                     </th>
                                 </tr>
 								<tr valign="top">
                                     <th>
                                         <label for="otpl_login_locktime">Lockout Period</label>
-                                        <input type="text" value="<?php echo esc_attr(get_option('otpl_login_locktime')); ?>" name="otpl_login_locktime" id="otpl_login_locktime" size="40" />
+                                        <input type="number" value="<?php echo esc_attr(get_option('otpl_login_locktime', 3600)); ?>" name="otpl_login_locktime" id="otpl_login_locktime" min="1" step="1" size="40" />
                                         <em>Define the lockout period in seconds.</em>
                                     </th>
                                 </tr>
