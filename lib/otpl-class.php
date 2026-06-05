@@ -33,7 +33,7 @@ if (!class_exists('OtpLoginFront')) {
 
         public function otpl_login_page_link()
         {
-            if (is_user_logged_in() || !get_option('otpl_login_page_enable', 1)) {
+            if (is_user_logged_in() || !get_option('otpl_login_page_enable', 0)) {
                 return;
             }
 
