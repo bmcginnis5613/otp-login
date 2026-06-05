@@ -6,7 +6,7 @@
         $password_reset_settings = get_option('custom_password_reset_settings', array());
         $password_reset_logo = is_array($password_reset_settings) && !empty($password_reset_settings['logo_url']) ? $password_reset_settings['logo_url'] : '';
         $password_reset_color = is_array($password_reset_settings) && !empty($password_reset_settings['button_color']) ? $password_reset_settings['button_color'] : '#0073aa';
-        $otp_login_page_enable = get_option('otpl_login_page_enable', 1);
+        $otp_login_page_enable = get_option('otpl_login_page_enable', 0);
         $otp_logo_url = get_option('otpl_email_logo_url', '');
         $otp_logo_max_height = get_option('otpl_email_logo_max_height', 60);
         $otp_accent_color = get_option('otpl_email_accent_color', '');
